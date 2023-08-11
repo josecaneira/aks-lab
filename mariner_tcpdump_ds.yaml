@@ -1,0 +1,105 @@
+#
+# Daemon Set to collect tcpdump cap files on each AKS cluster node
+#
+# Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml
+# Doesn't require Helm and uses Azure Linux(Mariner) image from Microsoft Artifcat Registry(MCR)
+# Should work on more restricted egress cluster since only requires access to Microsoft MCR(mcr.microsoft.com) and Azure Linux Packages(packages.microsoft.com)
+# A PV/PVC share will be created on the AKS cluster default storage account that then can be browsed usning Azure Portal on cluster MC_ Resource Group
+#
+# Install and run: kubectl apply -f mariner_tcpdump_ds.yaml
+# Uninstall: kubectl delete -f mariner_tcpdump_ds.yaml
+#
+# PV needs to be patched so that it would be retained after Daemnon Set delete:
+#     1st Identify PV: kubectl get pv|grep tcpdump
+#     2nd Patch PV: kubectl patch pv <pv_name>  -p "{\"spec\":{\"persistentVolumeReclaimPolicy\":\"Retain\"}}"
+#
+# Special thanks to Amjad Aljunaidi
+#
+# TODO: Implement some kind of cutomization on tcpdump options
+#
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tcpdump
+  namespace: default
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: azurefile-csi
+  resources:
+    requests:
+      storage: 500Gi
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  annotations:
+    deprecated.daemonset.template.generation: "1"
+  generation: 1
+  labels:
+    app.kubernetes.io/instance: tcpdump
+    app.kubernetes.io/name: tcpdump
+    app.kubernetes.io/version: "1.1"
+  name: tcpdump
+  namespace: default
+spec:
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: tcpdump
+      app.kubernetes.io/name: tcpdump
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: tcpdump
+        app.kubernetes.io/name: tcpdump
+    spec:
+      containers:
+      - command:
+        - bash
+        - -c
+        - |
+          mkdir -p /root/tcpdump && tdnf install tcpdump -y
+          /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt  -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        image: mcr.microsoft.com/cbl-mariner/base/core:2.0
+        imagePullPolicy: IfNotPresent
+        name: tcpdump
+        resources:
+          limits:
+            cpu: 100m
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 90Mi
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /root/tcpdump
+          name: tcpdump
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      hostPID: true
+      nodeSelector:
+        kubernetes.io/os: linux
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: tcpdump
+        persistentVolumeClaim:
+          claimName: tcpdump
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
