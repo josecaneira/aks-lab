@@ -1,2 +1,2 @@
 # aks-lab
-José Caneira garden of stuff
+José Caneira's garden of AKS related stuff
