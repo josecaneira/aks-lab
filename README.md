@@ -26,10 +26,10 @@ Version: 1.1
 CHANGELOG:
     11/08/2023:
         Initial release.
+
     12/08/2023:
         Insert of a ConfigMap with source(SRC) and destination(DST) variables to filter the tcpdump, update line 34 and/or 36 on the data section of the ConfigMap to use filtering;
         Posibility to run tcpdump only on a specific node, uncomment line 135 on nodeSelector section and personalize it with your own node hostname.
 
 TODO: Suggestions and feedback is welcomed.
-
 __________________________________________________________________________________________________________________________________________________________________________________________________________
