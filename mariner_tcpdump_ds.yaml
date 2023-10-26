@@ -16,13 +16,15 @@
 #
 # Special thanks to Amjad Aljunaidi
 #
-# Version: 1.1
+# Version: 1.1.1
 # CHANGELOG:
 #     11/08/2023:
 #         Initial release.
 #     12/08/2023:
 #         Insert of a ConfigMap with source(SRC) and destination(DST) variables to filter the tcpdump, update line 34 and/or 36 on the data section of the ConfigMap to use filtering;
-#         Posibility to run tcpdump only on a specific node, uncomment line 135 on nodeSelector section and personalize it with your own node hostname.
+#         Posibility to run tcpdump only on a specific node, uncomment line 145 on nodeSelector section and personalize it with your own node hostname.
+#     26/10/2023:
+#         Added support for use of CIDRs on SRC and DST filters. Thank you Fabio Fidelis for pointing this out.
 # TODO: Suggestions and feedback is welcomed.
 #
 apiVersion: v1
@@ -79,6 +81,15 @@ spec:
         - -c
         - |
           mkdir -p /root/tcpdump && tdnf install tcpdump -y
+          # Support for using network CIDRs in SRC and DST filters
+          if [[ "$SRC" == *\/* ]]; then
+            SRC="net $SRC"
+            echo "SRC is a Network"
+          fi
+          if [[ "$DST" == *\/* ]]; then
+            DST="net $DST"
+            echo "DST is a Network"
+          fi
           if [ -z "$SRC" ] && [ -z "$DST" ]; then
             echo "Empty SRC and DST"
             /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
