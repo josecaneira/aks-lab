@@ -2,7 +2,7 @@
 José Caneira's garden of AKS related stuff
 
 ____________________________________________________________________________________________________________________________________________________________________________________________________________
-**tcpdump deamonset**
+**tcpdump daemonset:**
 
 DaemonSet to collect tcpdump capture files on each AKS cluster node
 
