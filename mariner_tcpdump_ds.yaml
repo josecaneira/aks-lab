@@ -68,7 +68,6 @@ spec:
       app.kubernetes.io/name: tcpdump
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app.kubernetes.io/instance: tcpdump
         app.kubernetes.io/name: tcpdump
