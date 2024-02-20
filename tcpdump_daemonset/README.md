@@ -3,6 +3,8 @@
 
 DaemonSet to collect tcpdump capture files on each AKS cluster node
 
+Special thanks to Amjad Aljunaidi
+
 Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml
 Doesn't require Helm and uses Azure Linux(Mariner) image from Microsoft Artifcat Registry(MCR)
 Should work on more restricted egress AKS clusters since only requires access to Microsoft MCR(mcr.microsoft.com) and Azure Linux Packages(packages.microsoft.com)
@@ -16,7 +18,12 @@ PV needs to be patched so that it would be retained after DaemnonSet delete:
 
 STOP and UNINSTALL: kubectl delete -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
 
-Special thanks to Amjad Aljunaidi
+Customize usage:
+    wget https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
+    Edit the "tcpdump_ds.yaml" file and change the configmap variables or whatever you want
+    Deploy/RUN with: kubectl apply -f tcpdump_ds.yaml
+    Patch the PV as described above, so that it doesn't get deleted when you delete/stop the deployment
+    Delete/STOP with: kubectl delete -f tcpdump_ds.yaml
 
 Version: 1.1.2<br>
 CHANGELOG:<br>
