@@ -28,7 +28,8 @@
 #     20/02/2024:
 #         Moved tcpdump to it's own directory tcpdump_daemonset and renamed to tcpdump_ds.yaml
 #         Added support so that you can change the filter operator when both "SRC" and "DST" are set. Accepted values are "or", "OR", "and" and "AND", if empty defaults to "and".
-# TODO: Suggestions and feedback is welcomed.
+#
+# TODO: Add support to filter by interface name. Other suggestions and feedback is welcomed.
 #
 apiVersion: v1
 kind: ConfigMap
