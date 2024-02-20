@@ -1,28 +1,22 @@
 #
 # DaemonSet to collect tcpdump capture files on each AKS cluster node
 #
-#
-####################################################################################################
-# This version is deprecated use https://github.com/josecaneira/aks-lab/tcpdump_daemonset instead! #
-####################################################################################################
-#
-#
 # Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml
 # Doesn't require Helm and uses Azure Linux(Mariner) image from Microsoft Artifcat Registry(MCR)
 # Should work on more restricted egress AKS clusters since only requires access to Microsoft MCR(mcr.microsoft.com) and Azure Linux Packages(packages.microsoft.com)
 # A PV/PVC share will be created on the AKS cluster default storage account that then can be browsed on cluster "MC_" Resource Group using Azure Portal
 #
-# INSTALL and RUN: kubectl apply -f https://github.com/josecaneira/aks-lab/raw/main/mariner_tcpdump_ds.yaml
+# INSTALL and RUN: kubectl apply -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
 #
 # PV needs to be patched so that it would be retained after DaemnonSet delete:
 #     1st Identify PV: kubectl get pv|grep tcpdump
 #     2nd Patch PV: kubectl patch pv <pv_name>  -p "{\"spec\":{\"persistentVolumeReclaimPolicy\":\"Retain\"}}"
 #
-# STOP and UNINSTALL: kubectl delete -f https://github.com/josecaneira/aks-lab/raw/main/mariner_tcpdump_ds.yaml
+# STOP and UNINSTALL: kubectl delete -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
 #
 # Special thanks to Amjad Aljunaidi
 #
-# Version: 1.1.1
+# Version: 1.1.2
 # CHANGELOG:
 #     11/08/2023:
 #         Initial release.
@@ -31,6 +25,9 @@
 #         Posibility to run tcpdump only on a specific node, uncomment line 145 on nodeSelector section and personalize it with your own node hostname.
 #     26/10/2023:
 #         Added support for use of CIDRs on SRC and DST filters. Thank you Fabio Fidelis for pointing this out.
+#     20/02/2024:
+#         Moved tcpdump to it's own directory tcpdump_daemonset and renamed to tcpdump_ds.yaml
+#         Added support so that you can change the filter operator when both "SRC" and "DST" are set. Accepted values are "or", "OR", "and" and "AND", if empty defaults to "and".
 # TODO: Suggestions and feedback is welcomed.
 #
 apiVersion: v1
@@ -42,6 +39,8 @@ data:
   SRC: ""
   # Use DST variable below to filter the tcpdump destination(s)
   DST: ""
+  # Use OPR variable below to change the filter operator, accepted values are "or", "OR", "and" and "AND", defaults to "and".
+  OPR: ""
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -108,7 +107,13 @@ spec:
           else
             echo "SRC: ${SRC}"
             echo "DST: ${DST}"
-            /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt src ${SRC} and dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            if [ ! -z "$OPR" ] && ( [ "$OPR" == "or" ] || [ "$OPR" == "OR" ] ); then
+              echo "OPR: ${OPR}"
+              /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt src ${SRC} or dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            elif [ -z "$OPR" ] || ( [ "$DST" == "and" ] || [ "$DST" == "AND" ] ); then
+              echo "OPR: ${OPR}"
+              /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt src ${SRC} and dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            fi
           fi
         env:
         - name: NODE_NAME
