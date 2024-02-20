@@ -2,9 +2,9 @@
 # DaemonSet to collect tcpdump capture files on each AKS cluster node
 #
 #
-####################################################################################################
-# This version is deprecated use https://github.com/josecaneira/aks-lab/tcpdump_daemonset instead! #
-####################################################################################################
+##############################################################################################################
+# This version is deprecated use https://github.com/josecaneira/aks-lab/tree/main/tcpdump_daemonset instead! #
+##############################################################################################################
 #
 #
 # Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml
