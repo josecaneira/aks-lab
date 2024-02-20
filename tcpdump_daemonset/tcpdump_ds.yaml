@@ -115,13 +115,12 @@ spec:
           else
             echo "SRC: ${SRC}"
             echo "DST: ${DST}"
-            if [ ! -z "$OPR" ] && ( [ "$OPR" == "or" ] || [ "$OPR" == "OR" ] ); then
-              echo "OPR: ${OPR}"
-              /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt src ${SRC} or dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
-            elif [ -z "$OPR" ] || ( [ "$DST" == "and" ] || [ "$DST" == "AND" ] ); then
-              echo "OPR: ${OPR}"
-              /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt src ${SRC} and dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            OPER="and"
+            if [ ! -z "$OPR" ] && ([ "$OPR" == "or" ] || [ "$OPR" == "OR" ]); then
+              OPER="or"
             fi
+            echo "OPR: ${OPER}"
+            /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt src ${SRC} ${OPER} dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
           fi
         env:
         - name: NODE_NAME
