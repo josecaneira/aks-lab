@@ -132,6 +132,11 @@ spec:
             configMapKeyRef:
               name: tcpdump 
               key: DST
+        - name: OPR
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump 
+              key: OPR
         image: mcr.microsoft.com/cbl-mariner/base/core:2.0
         imagePullPolicy: IfNotPresent
         resources:
