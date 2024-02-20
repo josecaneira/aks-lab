@@ -36,7 +36,7 @@ CHANGELOG:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Added support for use of CIDRs on SRC and DST filters. Thank you Fabio Fidelis for pointing this out.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;20/02/2024:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Moved tcpdump project to it's own directory "tcpdump_daemonset" and renamed to "tcpdump_ds.yaml"<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Added support to change the operator when both "SRC" and "DST" are set. Accepted values are "or", "OR", "and" and "AND", if empty defaults to "and".<br><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Added support to change the operator when both "SRC" and "DST" are set. Accepted values are "or" or "OR", if empty or any other value defaults to "and".<br><br>
 TODO: Add support to filter by interface name on João Pedrosa suggestion. Other suggestions and feedback is welcomed.<br>
 
 __________________________________________________________________________________________________________________________________________________________________________________________________________

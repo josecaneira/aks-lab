@@ -34,7 +34,7 @@
 #         Added support for use of CIDRs on SRC and DST filters. Thank you Fabio Fidelis for pointing this out.
 #     20/02/2024:
 #         Moved tcpdump to it's own directory tcpdump_daemonset and renamed to tcpdump_ds.yaml
-#         Added support to change the operator when both "SRC" and "DST" are set. Accepted values are "or", "OR", "and" and "AND", if empty defaults to "and".
+#         Added support to change the operator when both "SRC" and "DST" are set. Accepted values are "or" or "OR", if empty or any other value defaults to "and".
 #
 # TODO: Add support to filter by interface name on João Pedrosa suggestion. Other suggestions and feedback is welcomed.
 #
@@ -47,7 +47,7 @@ data:
   SRC: ""
   # Use DST variable below to filter the tcpdump destination(s)
   DST: ""
-  # Use OPR variable below to change the filter operator, accepted values are "or", "OR", "and" and "AND", defaults to "and".
+  # Use OPR variable below to change the filter operator, accepted values are "or" or "OR", empty or any other value defaults to "and".
   OPR: ""
 ---
 apiVersion: v1
