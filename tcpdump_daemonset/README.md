@@ -42,7 +42,6 @@ CHANGELOG:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;20/02/2024:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Moved tcpdump project to it's own directory "tcpdump_daemonset" and renamed to "tcpdump_ds.yaml"<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Added support to change the operator when both "SRC" and "DST" are set. Accepted values are "or" or "OR", if empty or any other value defaults to "and".<br>
-<br>
 &nbsp;&nbsp;&nbsp;&nbsp;21/02/2024:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Added support to filter by interface name. Used with nodeSelector will allow you to only collect pod traffic. Thank you João Pedrosa for suggesting this;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Added support to change dump file size. If empty or not a integer number will default to 500MB, unit is MegaBytes;<br>
