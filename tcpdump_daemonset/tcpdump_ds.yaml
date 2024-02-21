@@ -1,29 +1,33 @@
 #
 # DaemonSet to collect tcpdump capture files on each AKS cluster node
 #
-# Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml
-# Doesn't require Helm and uses Azure Linux(Mariner) image from Microsoft Artifcat Registry(MCR)
-# Should work on more restricted egress AKS clusters since only requires access to Microsoft MCR(mcr.microsoft.com) and Azure Linux Packages(packages.microsoft.com)
-# A PV/PVC share will be created on the AKS cluster default storage account that then can be browsed on cluster "MC_" Resource Group using Azure Portal
+# Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml.
+# Using this yaml will create a configmap, a PersistentVolumeClaim and a DaemonSet that will run a tcpdump command on each one of your nodes.
+# Key features:
+#               Doesn't require Helm and uses Azure Linux(Mariner) image from Microsoft Artifcat Registry(MCR) that is already cached on AKS nodes;
+#               Should work on more restricted egress AKS clusters since only requires access to Microsoft MCR(mcr.microsoft.com) and Azure Linux Packages(packages.microsoft.com);
+#               A PV/PVC share will be created on the AKS cluster default storage account that then can be browsed on your cluster managed "MC_" Resource Group using Azure Portal;
+#               Can be customized by changing the variables defined on the ConfigMap to better tailor your requirements.
 #
 # Special thanks to Amjad Aljunaidi
 #
-# INSTALL and RUN: kubectl apply -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
-#
-# PV needs to be patched so that it would be retained after DaemnonSet delete:
-#     1st Identify PV: kubectl get pv|grep tcpdump
-#     2nd Patch PV: kubectl patch pv <pv_name>  -p "{\"spec\":{\"persistentVolumeReclaimPolicy\":\"Retain\"}}"
-#
-# STOP and UNINSTALL: kubectl delete -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
+# Default usage:
+#    1) Deploy/Run: kubectl apply -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
+#    2) PV needs to be patched so that it would be retained after DaemnonSet delete:
+#    2.1) Identify PV: kubectl get pv|grep tcpdump
+#    2.2) Patch PV: kubectl patch pv <pv_name>  -p "{\"spec\":{\"persistentVolumeReclaimPolicy\":\"Retain\"}}"
+#    3) Delete/Stop: kubectl delete -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
 #
 # Customize usage:
-#    wget https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
-#    Edit the "tcpdump_ds.yaml" file and change the configmap variables or whatever you want
-#    Deploy/RUN with: kubectl apply -f tcpdump_ds.yaml
-#    Patch the PV as described above, so that it doesn't get deleted when you delete/stop the deployment
-#    Delete/STOP with: kubectl delete -f tcpdump_ds.yaml
+#    1) Download from GitHub: wget https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml
+#    2) Edit the "tcpdump_ds.yaml" file and change the ConfigMap variables or whatever you want
+#    3) Deploy/Run with: kubectl apply -f tcpdump_ds.yaml
+#       OPTIONAL - Deploy/Run using a namespace: kubectl apply -f tcpdump_ds.yaml -n your-namespace
+#    4) Patch the PV as described above, so that it doesn't get deleted when you delete/stop the deployment
+#    5) Delete/Stop with: kubectl delete -f tcpdump_ds.yaml
+#       OPTIONAL - Delete/Stop using a namespace: kubectl delete -f tcpdump_ds.yaml -n your-namespace
 #
-# Version: 1.1.2
+# Version: 1.1.3
 # CHANGELOG:
 #     11/08/2023:
 #         Initial release.
@@ -35,26 +39,35 @@
 #     20/02/2024:
 #         Moved tcpdump to it's own directory tcpdump_daemonset and renamed to tcpdump_ds.yaml
 #         Added support to change the operator when both "SRC" and "DST" are set. Accepted values are "or" or "OR", if empty or any other value defaults to "and".
+#     21/02/2024:
+#         Added support to filter by interface name. Used with nodeSelector will allow you to only collect pod traffic. Thank you João Pedrosa for suggesting this;
+#         Added support to change dump file size. If empty or not a integer number will default to 500MB, unit is MegaBytes;
+#         Removed namespace so that namespace can be used at apply.
 #
-# TODO: Add support to filter by interface name on João Pedrosa suggestion. Other suggestions and feedback is welcomed.
+# TODO: Use a storageClass with retain to avoid patching PV manually. Other suggestions and/or feedback is welcomed.
 #
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: tcpdump
+  #namespace: default
 data:
-  # Use SRC variable below to filter the tcpdump source(s)
+  # Use SRC variable to filter the tcpdump source(s)
   SRC: ""
-  # Use DST variable below to filter the tcpdump destination(s)
+  # Use DST variable to filter the tcpdump destination(s)
   DST: ""
-  # Use OPR variable below to change the filter operator, accepted values are "or" or "OR", empty or any other value defaults to "and".
+  # Use OPR variable to change the filter operator, accepted values are "or" or "OR", empty or any other value defaults to "and".
   OPR: ""
+  # Use INT variable to filter the tcpdump with specific interface.
+  INT: ""
+  # Use SIZ variable to change the dump file size, if empty or not a integer number will default to 500MB, unit is MegaBytes.
+  SIZ: ""
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: tcpdump
-  namespace: default
+  #namespace: default
 spec:
   accessModes:
   - ReadWriteMany
@@ -66,17 +79,13 @@ spec:
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  annotations:
-    deprecated.daemonset.template.generation: "1"
-  generation: 1
   labels:
     app.kubernetes.io/instance: tcpdump
     app.kubernetes.io/name: tcpdump
-    app.kubernetes.io/version: "1.1"
+    app.kubernetes.io/version: "1.1.3"
   name: tcpdump
-  namespace: default
+  #namespace: default
 spec:
-  revisionHistoryLimit: 10
   selector:
     matchLabels:
       app.kubernetes.io/instance: tcpdump
@@ -94,6 +103,14 @@ spec:
         - -c
         - |
           mkdir -p /root/tcpdump && tdnf install tcpdump -y
+          # Check if SIZ variable is empty or is not an integer number
+          if [ -z "$SIZ" ] || ( ! [[ $SIZ =~ ^[0-9]+$ ]] ); then
+            SIZ=500
+          fi
+          echo "Size of each capture file: $SIZ"
+          if [ ! -z "$INT" ]; then
+            echo "Using interface name: $INT"
+          fi
           # Support for using network CIDRs in SRC and DST filters
           if [[ "$SRC" == *\/* ]]; then
             SRC="net $SRC"
@@ -105,13 +122,25 @@ spec:
           fi
           if [ -z "$SRC" ] && [ -z "$DST" ]; then
             echo "Empty SRC and DST"
-            /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            if [ ! -z "$INT" ]; then
+              /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            else
+              /usr/sbin/tcpdump -n -s 0 -C ${SIZ} -W 15 -tttt -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            fi
           elif [ ! -z "$SRC" ] && [ -z "$DST" ]; then
             echo "SRC: ${SRC}"
-            /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt src ${SRC} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            if [ ! -z "$INT" ]; then
+              /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            else
+              /usr/sbin/tcpdump -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            fi
           elif [ -z "$SRC" ] && [ ! -z "$DST" ]; then
             echo "DST: ${DST}"
-            /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            if [ ! -z "$INT" ]; then
+              /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            else
+              /usr/sbin/tcpdump -n -s 0 -C ${SIZ} -W 15 -tttt dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            fi
           else
             echo "SRC: ${SRC}"
             echo "DST: ${DST}"
@@ -120,7 +149,11 @@ spec:
               OPER="or"
             fi
             echo "OPR: ${OPER}"
-            /usr/sbin/tcpdump -n -s 0 -C 500 -W 15 -tttt src ${SRC} ${OPER} dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            if [ ! -z "$INT" ]; then
+              /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} ${OPER} dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            else
+              /usr/sbin/tcpdump -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} ${OPER} dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            fi
           fi
         env:
         - name: NODE_NAME
@@ -143,6 +176,16 @@ spec:
             configMapKeyRef:
               name: tcpdump 
               key: OPR
+        - name: INT
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump 
+              key: INT
+        - name: SIZ
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump 
+              key: SIZ
         image: mcr.microsoft.com/cbl-mariner/base/core:2.0
         imagePullPolicy: IfNotPresent
         resources:
@@ -164,7 +207,7 @@ spec:
       hostPID: true
       nodeSelector:
         kubernetes.io/os: linux
-        # Uncomment the line bellow to only run tcpdump on a specific node
+        # Uncomment the line bellow to only run tcpdump on a specific node, you may also consider using the INT variable to filter by the POD interface.
         #kubernetes.io/hostname: aks-marinerpool-40174192-vmss000000
       restartPolicy: Always
       schedulerName: default-scheduler
