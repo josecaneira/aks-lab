@@ -38,8 +38,10 @@ Customize usage:<br>
 <br>
 Latest Version: 1.1.4
 <br>
+<br>
 CHANGELOG:
-	11/08/2023:
+
+    11/08/2023:
 		Initial release.
 
 	12/08/2023:
