@@ -3,16 +3,19 @@
 
 DaemonSet to collect tcpdump capture files on each AKS cluster node
 
-Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml.
-Improved with features from https://github.com/ioanc/k8s-network-troubleshooting/blob/master/daemonSet-tcpdump-pvc.yaml
-Special thanks to Amjad Aljunaidi and Ioan Corcodel for source materials and ideas.
+Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml instead of Helm.<br>
+Improved with features from https://github.com/ioanc/k8s-network-troubleshooting/blob/master/daemonSet-tcpdump-pvc.yaml<br>
+Special thanks to Amjad Aljunaidi and Ioan Corcodel for source materials and ideas.<br>
 
 Using this yaml file will create a configmap, a StorageClass, a PersistentVolumeClaim and a DaemonSet that will run a tcpdump command on each one of your nodes.
-Key features:
+
+<p>
+Key features:<br>
                Doesn't require Helm and uses Azure Linux(Mariner) image from Microsoft Artifcat Registry(MCR) that is already cached on AKS nodes;
                Should work on more restricted egress AKS clusters since only requires access to Microsoft MCR(mcr.microsoft.com) and Azure Linux Packages(packages.microsoft.com);
                A PV/PVC file share will be created on the AKS cluster default storage account that then can be browsed on your cluster managed Resource Group "MC_" using Azure Portal;
                Can be customized by changing the variables defined on the ConfigMap to better tailor your requirements.
+</p>
 
 Default usage:<br>
     1) Deploy/Run: kubectl apply -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml<br>
