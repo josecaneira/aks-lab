@@ -1,47 +1,46 @@
 
 **tcpdump DaemonSet**
 
-DaemonSet to collect tcpdump capture files on each AKS cluster node
+DaemonSet to collect tcpdump capture files on each AKS cluster node storing them on an Azure file share.
 
 Based on https://github.com/amjadaljunaidi/tcpdump however only using yaml instead of Helm.<br>
 Improved with features from https://github.com/ioanc/k8s-network-troubleshooting/blob/master/daemonSet-tcpdump-pvc.yaml<br>
-Special thanks to Amjad Aljunaidi and Ioan Corcodel for source materials and ideas.<br>
+Special thanks to Amjad and Ioan for source materials and ideas.<br>
 
 Using this yaml file will create a configmap, a StorageClass, a PersistentVolumeClaim and a DaemonSet that will run a tcpdump command on each one of your nodes.
 
-<p>
-Key features:<br>
-               Doesn't require Helm and uses Azure Linux(Mariner) image from Microsoft Artifcat Registry(MCR) that is already cached on AKS nodes;
-               Should work on more restricted egress AKS clusters since only requires access to Microsoft MCR(mcr.microsoft.com) and Azure Linux Packages(packages.microsoft.com);
-               A PV/PVC file share will be created on the AKS cluster default storage account that then can be browsed on your cluster managed Resource Group "MC_" using Azure Portal;
-               Can be customized by changing the variables defined on the ConfigMap to better tailor your requirements.
-</p>
+Key features:
+* Doesn't require Helm and uses Azure Linux(Mariner) image from Microsoft Artifcat Registry(MCR) that is already cached on AKS Azure Linux nodes;
+* Should work on more restricted egress AKS clusters since only requires access to Microsoft MCR(mcr.microsoft.com) and Azure Linux Packages(packages.microsoft.com);
+* A PV/PVC file share will be created on the AKS cluster default storage account that then can be browsed on your cluster managed Resource Group "MC_" using Azure Portal. If no default storage account exists a new one will be created, please remember to delete it after it no longer being required;
+* Can be customized by changing the variables defined on the ConfigMap to better tailor your requirements.
 
-Default usage:<br>
-    1) Deploy/Run: kubectl apply -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml<br>
-    2) Wait for traffic to be collected;<br>
-    3) Delete/Stop: kubectl delete -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml<br>
-    4) Delete the PV:<br>
-        a) Get the PV name: kubectl get pv|grep tcpdump<br>
-        b) Delete the PV: kubectl delete pv <PV_NAME><br>
-    5) Browse the file share(PV) on your cluster managed Resource Group "MC_" using Azure Portal to download capture files.<br>
+Default usage:
 
-Customize usage:<br>
-    1) Download from GitHub: wget https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml<br>
-    2) Edit the "tcpdump_ds.yaml" file and change the ConfigMap variables or whatever you want<br>
-    3) Deploy/Run with: kubectl apply -f tcpdump_ds.yaml<br>
-        OPTIONAL - Deploy/Run using a namespace: kubectl apply -f tcpdump_ds.yaml -n your-namespace<br>
-    4) Wait for traffic to be collected;<br>
-    5) Delete/Stop with: kubectl delete -f tcpdump_ds.yaml<br>
-        OPTIONAL - Delete/Stop using a namespace: kubectl delete -f tcpdump_ds.yaml -n your-namespace<br>
-    6) Delete the PV:<br>
-        a) Get the PV name: kubectl get pv|grep tcpdump<br>
-        b) Delete the PV: kubectl delete pv <PV_NAME><br>
-    7) Browse the file share(PV) on your cluster managed Resource Group "MC_" using Azure Portal to download capture files.<br>
-<br>
-Latest Version: 1.1.4
-<br>
-<br>
+1) Deploy/Run: ```kubectl apply -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml```
+2) Wait for traffic to be collected;
+3) Delete/Stop: ```kubectl delete -f https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml```
+4) Delete the PV:
++ Get the PV name: ```kubectl get pv|grep tcpdump```
++ Delete the PV: ```kubectl delete pv <PV_NAME>```
+5) Browse the file share(PV) on your cluster managed Resource Group "MC_" using Azure Portal to download capture files.
+
+Customize usage:
+
+1) Download from GitHub: ```wget https://github.com/josecaneira/aks-lab/raw/main/tcpdump_daemonset/tcpdump_ds.yaml```
+2) Edit the "tcpdump_ds.yaml" file and change the ConfigMap variables or whatever you want;
+3) Deploy/Run with: ```kubectl apply -f tcpdump_ds.yaml```
++ OPTIONAL - Deploy/Run using a namespace: ```kubectl apply -f tcpdump_ds.yaml -n your-namespace```
+4) Wait for traffic to be collected;
+5) Delete/Stop with: ```kubectl delete -f tcpdump_ds.yaml```
++ OPTIONAL - Delete/Stop using a namespace: ```kubectl delete -f tcpdump_ds.yaml -n your-namespace```
+6) Delete the PV:
++ Get the PV name: ```kubectl get pv|grep tcpdump```
++ Delete the PV: ```kubectl delete pv <PV_NAME>```
+7) Browse the file share(PV) on your cluster managed Resource Group "MC_" using Azure Portal to download capture files.
+
+***Latest Version: 1.1.4***
+
 CHANGELOG:
 
     11/08/2023:
