@@ -54,7 +54,7 @@
 #         Added support to change dump file size. If empty or not a integer number will default to 500MB, unit is MegaBytes;
 #         Removed namespace so that namespace can be used at apply.
 #     23/02/2024:
-#         Added a storageClass with retain on reclaimPolicy to avoid patching PV manually. Thank you Ioan Corcodel for the idea from is own work https://github.com/ioanc/k8s-network-troubleshooting/blob/master/daemonSet-tcpdump-pvc.yaml
+#         Added a storageClass with retain on reclaimPolicy to avoid patching PV manually. Thank you Ioan Corcodel for the idea from his work https://github.com/ioanc/k8s-network-troubleshooting/blob/master/daemonSet-tcpdump-pvc.yaml
 #         Added support to filter by HOST, if HST variable is set it will be used to filter the tcpdump with "host" option, SRC and DST variables will be ignored;
 #         Improved logic so that IFs aren't required to handle the INT variable per each tcpdump command. Default interface will be "any".
 #
