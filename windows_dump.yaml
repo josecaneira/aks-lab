@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: windows-dump-checker
+  labels:
+    app: windows-dump-checker
+spec:
+  selector:
+    matchLabels:
+      app: windows-dump-checker
+  template:
+    metadata:
+        labels:
+            app: windows-dump-checker
+    spec:
+        securityContext:
+            windowsOptions:
+                hostProcess: true
+                runAsUserName: "NT AUTHORITY\\SYSTEM"
+        hostNetwork: true
+        nodeSelector:
+            kubernetes.io/os: windows
+        containers:
+          - name: windows-dump-checker
+            image: mcr.microsoft.com/powershell:nanoserver-1809
+            imagePullPolicy: IfNotPresent
+            command: ["powershell"]
+            args:
+                - -Command
+                - |
+                    $needReboot = $false
+                    # Check the current memory dump settings and store values in variables
+                    $memoryDumpSettings = Get-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" | Select-Object CrashDumpEnabled, DumpFile, MinidumpFileSize
+                    $crashDumpEnabled = $memoryDumpSettings.CrashDumpEnabled
+                    $dumpFile = $memoryDumpSettings.DumpFile
+                    $minidumpFileSize = $memoryDumpSettings.MinidumpFileSize
+                    # Check if memory dump is not enabled and enable it
+                    if ($crashDumpEnabled -ne 1) {
+                        Write-Host "Memory dump is not enabled for Complete Dump, enabling it now..."
+                        # Enable memory dump
+                        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" -Name "CrashDumpEnabled" -Value 1
+                        # Set the memory dump file path
+                        #Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" -Name "DumpFile" -Value "C:\Windows\Memory.dmp"
+                        # Set the memory dump file size
+                        #Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CrashControl" -Name "MinidumpFileSize" -Value 1024
+                        $needReboot = $true
+                    } else {
+                        Write-Host "Memory dump is already enabled for Complete Dump."
+                    }
+                    if ($needReboot -eq $true) {
+                        Write-Host "Rebooting to apply changes..."
+                        Start-Sleep -Seconds 15
+                        Restart-Computer -Force
+                    } else {
+                        Write-Host "No reboot required."
+                    }
+                    while ($true) {
+                        Start-Sleep -Seconds 2147483
+                    }
+        affinity:
+            nodeAffinity:
+                requiredDuringSchedulingIgnoredDuringExecution:
+                  nodeSelectorTerms:
+                    - matchExpressions:
+                        - key: agentpool
+                          operator: In 
+                          values: 
+                            - prod
