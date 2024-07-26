@@ -1,0 +1,161 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: tcpdump
+  #namespace: default
+data:
+  # Use INT variable to specify interface name.
+  INT: "eth0"
+  # Use SIZ variable to change the dump file size in MegaBytes.
+  SIZ: "1024"
+  # Use NUM variable to specify the maximum number of cap files.
+  NUM: "20"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+    kubernetes.io/cluster-service: "true"
+  name: tcpdump-retain
+mountOptions:
+- mfsymlinks
+- actimeo=30
+- nosharesock
+parameters:
+  #skuName: Standard_LRS
+  storageAccount: <storage account name>
+  location: <storage account location>
+provisioner: file.csi.azure.com
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: tcpdump-secret
+type: Opaque
+data:
+  azurestorageaccountname: <base64 encoded storage account name>
+  azurestorageaccountkey: <base64 encoded storage account key>
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: tcpdump
+spec:
+  capacity:
+    storage: 500Gi
+  accessModes:
+  - ReadWriteMany
+  storageClassName: tcpdump-retain
+  azureFile:
+    secretName: tcpdump-secret
+    shareName: tcpdumps
+    readOnly: false
+  mountOptions:
+  - dir_mode=0777
+  - file_mode=0777
+  #- uid=1000
+  #- gid=1000
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: tcpdump
+spec:
+  accessModes:
+  - ReadWriteMany
+  storageClassName: tcpdump-retain
+  resources:
+    requests:
+      storage: 500Gi
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  labels:
+    app.kubernetes.io/instance: tcpdump
+    app.kubernetes.io/name: tcpdump
+    app.kubernetes.io/version: "1.1.4"
+  name: tcpdump
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: tcpdump
+      app.kubernetes.io/name: tcpdump
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: tcpdump
+        app.kubernetes.io/name: tcpdump
+    spec:
+      containers:
+      - name: tcpdump
+        command:
+        - bash
+        - -c
+        - |
+          mkdir -p /root/tcpdump && tdnf install tcpdump -y
+          /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W ${NUM} -tttt  -w /root/tcpdump/"${NODE_NAME}_$(date +"%Y-%m-%d_%I-%M-%p").cap"
+        env:
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
+        - name: INT
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump
+              key: INT
+        - name: SIZ
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump
+              key: SIZ
+        - name: NUM
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump 
+              key: NUM
+        image: mcr.microsoft.com/cbl-mariner/base/core:2.0
+        imagePullPolicy: IfNotPresent
+        resources:
+          limits:
+            cpu: 500m
+            memory: 400Mi
+          requests:
+            cpu: 100m
+            memory: 90Mi
+        securityContext:
+          privileged: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /root/tcpdump
+          name: tcpdump
+      dnsPolicy: ClusterFirst
+      hostNetwork: true
+      hostPID: true
+      nodeSelector:
+        kubernetes.io/os: linux
+        # Uncomment the line bellow to only run tcpdump on a specific node, you may also consider using the INT variable to filter by the POD interface.
+        #kubernetes.io/hostname: aks-marinerpool-40174192-vmss000000
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: tcpdump
+        persistentVolumeClaim:
+          claimName: tcpdump
+      - name: config
+        configMap:
+          name: tcpdump
+  updateStrategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
