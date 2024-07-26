@@ -74,6 +74,7 @@ spec:
   accessModes:
   - ReadWriteMany
   storageClassName: tcpdump-retain
+  volumeName: tcpdump
   resources:
     requests:
       storage: 500Gi
