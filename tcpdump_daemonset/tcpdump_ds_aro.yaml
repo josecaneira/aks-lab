@@ -4,12 +4,18 @@ metadata:
   name: tcpdump
   #namespace: default
 data:
+  # Use SRC variable to filter the tcpdump source(s)
+  SRC: "port 1433"
+  # Use DST variable to filter the tcpdump destination(s)
+  DST: "port 1433"
+  # Use OPR variable to change the filter operator.
+  OPR: "or"
   # Use INT variable to specify interface name.
   INT: "eth0"
   # Use SIZ variable to change the dump file size in MegaBytes.
-  SIZ: "1024"
+  SIZ: "500"
   # Use NUM variable to specify the maximum number of cap files.
-  NUM: "20"
+  NUM: "10"
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -98,13 +104,28 @@ spec:
         - -c
         - |
           mkdir -p /root/tcpdump && tdnf install tcpdump -y
-          /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W ${NUM} -tttt  -w /root/tcpdump/"${NODE_NAME}_$(date +"%Y-%m-%d_%I-%M-%p").cap"
+          /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W ${NUM} -tttt src ${SRC} ${OPR} dst ${DST} -w /root/tcpdump/"${NODE_NAME}_$(date +"%Y-%m-%d_%I-%M-%p").cap"
         env:
         - name: NODE_NAME
           valueFrom:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.nodeName
+        - name: SRC
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump
+              key: SRC
+        - name: DST
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump
+              key: DST
+        - name: OPR
+          valueFrom:
+            configMapKeyRef:
+              name: tcpdump
+              key: OPR
         - name: INT
           valueFrom:
             configMapKeyRef:
