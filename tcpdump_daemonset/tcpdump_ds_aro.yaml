@@ -104,7 +104,7 @@ spec:
         - bash
         - -c
         - |
-          mkdir -p /root/tcpdump && tdnf install tcpdump -y
+          mkdir -p /root/tcpdump && tdnf install tcpdump tar -y
           /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W ${NUM} -tttt src ${SRC} ${OPR} dst ${DST} -w /root/tcpdump/"${NODE_NAME}_$(date +"%Y-%m-%d_%I-%M-%p").cap"
         env:
         - name: NODE_NAME
