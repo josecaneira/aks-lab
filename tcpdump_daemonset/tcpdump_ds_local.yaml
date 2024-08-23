@@ -198,9 +198,6 @@ spec:
           privileged: true
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
-        volumeMounts:
-        - mountPath: /root/tcpdump
-          name: tcpdump
       dnsPolicy: ClusterFirst
       hostNetwork: true
       hostPID: true
@@ -213,9 +210,6 @@ spec:
       securityContext: {}
       terminationGracePeriodSeconds: 30
       volumes:
-      - name: tcpdump
-        persistentVolumeClaim:
-          claimName: tcpdump
       - name: config
         configMap:
           name: tcpdump
