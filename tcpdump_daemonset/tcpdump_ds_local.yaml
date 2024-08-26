@@ -59,7 +59,7 @@
 #         Improved logic so that IFs aren't required to handle the INT variable per each tcpdump command. Default interface will be "any".
 #     26/08/2024:
 #         Simplified version using local node storage to hold the capture files. No need for PV/PVC anymore on this verion, however, you would need to use "kubectl cp" to copy files from pod before deleting the depoloyment;
-#         Removed space on capture file name to avoid issues with "kubectl cp" command.
+#         Removed space on capture file name and installing tar command to avoid issues with "kubectl cp" command when copying files from pods.
 #
 # TODO: Implement a "restricted" mode to only collect certain packages types. Other suggestions and/or feedback is welcomed.
 #
@@ -150,7 +150,7 @@ spec:
               OPER="or"
             fi
             echo "OPR: ${OPER}"
-            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} ${OPER} dst ${DST} -w /root/tcpdump/"$NODE_NAME""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} ${OPER} dst ${DST} -w /root/tcpdump/"$NODE_NAME-$(date +"%Y_%m_%d_%I_%M_%p").cap"
           fi
         env:
         - name: NODE_NAME
