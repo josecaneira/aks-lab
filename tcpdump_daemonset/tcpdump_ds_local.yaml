@@ -57,6 +57,8 @@
 #         Added a storageClass with retain on reclaimPolicy to avoid patching PV manually. Thank you Ioan Corcodel for the idea from his work https://github.com/ioanc/k8s-network-troubleshooting/blob/master/daemonSet-tcpdump-pvc.yaml
 #         Added support to filter by HOST, if HST variable is set it will be used to filter the tcpdump with "host" option, SRC and DST variables will be ignored;
 #         Improved logic so that IFs aren't required to handle the INT variable per each tcpdump command. Default interface will be "any".
+#     26/08/2024:
+#         Simplified version using local node storage to hold the capture files. No need for PV/PVC anymore on this verion, however, you would need to use "kubectl cp" to copy files from pod before deleting the depoloyment.
 #
 # TODO: Implement a "restricted" mode to only collect certain packages types. Other suggestions and/or feedback is welcomed.
 #
@@ -85,7 +87,7 @@ metadata:
   labels:
     app.kubernetes.io/instance: tcpdump
     app.kubernetes.io/name: tcpdump
-    app.kubernetes.io/version: "1.1.4"
+    app.kubernetes.io/version: "1.1.5-local"
   name: tcpdump
 spec:
   selector:
@@ -104,7 +106,7 @@ spec:
         - bash
         - -c
         - |
-          mkdir -p /root/tcpdump && tdnf install tcpdump -y
+          mkdir -p /root/tcpdump && tdnf install tcpdump tar -y
           # Check if SIZ variable is empty or is not an integer number
           if [ -z "$SIZ" ] || ( ! [[ $SIZ =~ ^[0-9]+$ ]] ); then
             SIZ=500
@@ -129,16 +131,16 @@ spec:
             echo "HST variable is set..."
             echo "HOST: ${HST}"
             echo "WARNING: With HST being set SRC and DST will be ignored!"
-            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt host ${HST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt host ${HST} -w /root/tcpdump/"$NODE_NAME-$(date +"%Y_%m_%d_%I_%M_%p").cap"
           elif [ -z "$SRC" ] && [ -z "$DST" ]; then
             echo "Empty SRC and DST"
-            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt -w /root/tcpdump/"$NODE_NAME-$(date +"%Y_%m_%d_%I_%M_%p").cap"
           elif [ ! -z "$SRC" ] && [ -z "$DST" ]; then
             echo "SRC: ${SRC}"
-            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} -w /root/tcpdump/"$NODE_NAME-$(date +"%Y_%m_%d_%I_%M_%p").cap"
           elif [ -z "$SRC" ] && [ ! -z "$DST" ]; then
             echo "DST: ${DST}"
-            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt dst ${DST} -w /root/tcpdump/"$NODE_NAME-$(date +"%Y_%m_%d_%I_%M_%p").cap"
           else
             echo "SRC: ${SRC}"
             echo "DST: ${DST}"
@@ -147,7 +149,7 @@ spec:
               OPER="or"
             fi
             echo "OPR: ${OPER}"
-            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} ${OPER} dst ${DST} -w /root/tcpdump/"$NODE_NAME ""$(date +"%Y_%m_%d_%I_%M_%p").cap"
+            /usr/sbin/tcpdump -i ${INT} -n -s 0 -C ${SIZ} -W 15 -tttt src ${SRC} ${OPER} dst ${DST} -w /root/tcpdump/"$NODE_NAME""$(date +"%Y_%m_%d_%I_%M_%p").cap"
           fi
         env:
         - name: NODE_NAME
