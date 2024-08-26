@@ -58,7 +58,8 @@
 #         Added support to filter by HOST, if HST variable is set it will be used to filter the tcpdump with "host" option, SRC and DST variables will be ignored;
 #         Improved logic so that IFs aren't required to handle the INT variable per each tcpdump command. Default interface will be "any".
 #     26/08/2024:
-#         Simplified version using local node storage to hold the capture files. No need for PV/PVC anymore on this verion, however, you would need to use "kubectl cp" to copy files from pod before deleting the depoloyment.
+#         Simplified version using local node storage to hold the capture files. No need for PV/PVC anymore on this verion, however, you would need to use "kubectl cp" to copy files from pod before deleting the depoloyment;
+#         Removed space on capture file name to avoid issues with "kubectl cp" command.
 #
 # TODO: Implement a "restricted" mode to only collect certain packages types. Other suggestions and/or feedback is welcomed.
 #
