@@ -11,7 +11,7 @@ data:
   # Use OPR variable to change the filter operator.
   OPR: "or"
   # Use INT variable to specify interface name.
-  INT: "eth0"
+  INT: "any"
   # Use SIZ variable to change the dump file size in MegaBytes.
   SIZ: "500"
   # Use NUM variable to specify the maximum number of cap files.
