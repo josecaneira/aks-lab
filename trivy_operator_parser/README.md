@@ -1,8 +1,8 @@
-
-
+  
+  
 ***Bash shell script to parse data from Trivy Operator running on an AKS cluster.***
-
-
+  
+  
 Key features:
 * This script will list all vulnerabilities found by Trivy Operator in AKS clusters;  
 * It will list the CVE/GHSA ID, Severity, Link, Published Date, Resource, Installed Version, Fixed Version(s);  
@@ -34,9 +34,9 @@ Trivy Operator deployment:
 * Helm:  
   - Add Aqua chart repository: `helm repo add aqua https://aquasecurity.github.io/helm-charts/` 
   - Update helm repos: `helm repo update` 
-  - Install: `helm install trivy-operator aqua/trivy-operator --namespace trivy-system --create-namespace --set="trivy.ignoreUnfixed=true" --version 0.3.0`  
+  - Install: `helm install trivy-operator aqua/trivy-operator --namespace trivy-system --create-namespace --set="trivy.ignoreUnfixed=true"`  
   
-* Yaml: `kubectl apply -f https://raw.githubusercontent.com/aquasecurity/trivy-operator/v0.3.0/deploy/static/trivy-operator.yaml` 
+* Yaml: `kubectl apply -f https://raw.githubusercontent.com/aquasecurity/trivy-operator/v0.22.0/deploy/static/trivy-operator.yaml` 
   
   
 Usage:  
