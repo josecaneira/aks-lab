@@ -3,7 +3,13 @@
 ***Bash shell script to parse data from Trivy Operator running on an AKS cluster.***
 
 
-
+Key features:
+* This script will list all vulnerabilities found by Trivy Operator in AKS clusters;  
+* It will list the CVE/GHSA ID, Severity, Link, Published Date, Resource, Installed Version, Fixed Version(s);  
+* It will show the Kubernetes Kind, Resource Name, Namespace, Container;  
+* On pretty/file mode will also provide provide the command to get the full Trivy report and the command to describe the affected Kubernetes object.  
+  
+  
 Requirements:
 * Trivy Operator running on AKS cluster:  
     Overview: https://aquasecurity.github.io/trivy-operator/v0.3.0/operator  
@@ -23,14 +29,7 @@ Requirements:
 * tr command:  
     Ubuntu: `sudo apt install coreutils`  
     AzureLinux: `sudo tdnf install coreutils`  
-
-
-Key features:
-* This script will list all vulnerabilities found by Trivy Operator in AKS clusters;  
-* It will list the CVE/GHSA ID, Severity, Link, Published Date, Resource, Installed Version, Fixed Version(s);  
-* It will show the Kubernetes Kind, Resource Name, Namespace, Container;  
-* On pretty/file mode will also provide provide the command to get the full Trivy report and the command to describe the affected Kubernetes object.  
-
+  
 Trivy Operator deployment:  
 * Helm:  
   - Add Aqua chart repository: `helm repo add aqua https://aquasecurity.github.io/helm-charts/` 
