@@ -7,9 +7,9 @@ Key features:
 * This script will list all vulnerabilities found by Trivy Operator in AKS clusters;  
 * It will list the CVE/GHSA ID, Severity, Link, Published Date, Resource, Installed Version, Fixed Version(s);  
 * It will show the Kubernetes Kind, Resource Name, Namespace, Container;  
-* On pretty/file mode will also provide provide the command to get the full Trivy report and the command to describe the affected Kubernetes object.  
+* On pretty/file mode will also provide the command to get the full Trivy report and the command to describe the affected Kubernetes object.  
   
-  
+
 Requirements:
 * Trivy Operator running on AKS cluster:  
     Overview: https://aquasecurity.github.io/trivy-operator/v0.3.0/operator  
