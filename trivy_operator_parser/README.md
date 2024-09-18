@@ -43,7 +43,7 @@ Trivy Operator deployment:
 Usage:  
 1. Download: `wget https://raw.githubusercontent.com/josecaneira/aks-lab/main/trivy_operator_parser/vulns_aks.sh`  
 2. Change permissions: `chmod u+x vulns_aks.sh`  
-3. Run: `vulns_aks.sh [file|csv]`  
+3. Run: `./vulns_aks.sh [file|csv]`  
 
 
 ***Latest Version: 0.10(Initial Public Release)***
