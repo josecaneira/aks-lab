@@ -7,10 +7,11 @@
 # Usage: bash vulns_aks.sh [file|csv]
 # Output: vulns_aks_YYYYMMDD_HHMMSS.txt/csv (if file or csv argument is provided)
 # Requirements: kubectl, jq, tr and trivy-operator deployment in AKS cluster
+#
 # Author: José Caneira
 # Created Date: 2024-09-02
-# Updated Date: 2024-09-18
-# Version: 0.10 (initial public release)
+# Updated Date: 2024-09-20
+# Version: 0.10.1
 # TODO: Include more fields in the output
 #
 # Requirements checking...
@@ -40,6 +41,8 @@ if [ -z "`kubectl get deploy -A|grep trivy-operator`" ]; then
     echo "helm install trivy-operator aqua/trivy-operator --namespace trivy-system --create-namespace"
     exit 1
 fi
+#Grab the current AKS cluster name from kubectl context.
+cluster=`kubectl config current-context`
 echo "Collecting vulnerabilities from \"$cluster\" AKS cluster..."
 if [ "$1" == "csv" ]; then
     csv=true
@@ -51,8 +54,6 @@ else
     echo "Vulnereabilities for \"$cluster\" AKS cluster:">${log}
     echo "#####################################################" >>${log}
 fi
-#Grab the current AKS cluster name from kubectl context.
-cluster=`kubectl config current-context`
 # Main loop to get vulnerabilities.
 for pods in `kubectl get vuln -A --no-headers|awk '{print $2":"$1}'`; do
   pod=$(echo $pods|awk -F ":" '{print $1}')

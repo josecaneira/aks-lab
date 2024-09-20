@@ -9,12 +9,13 @@ Key features:
 * It will show the Kubernetes Kind, Resource Name, Namespace, Container;  
 * On pretty/file mode will also provide the command to get the full Trivy report and the command to describe the affected Kubernetes object.  
   
-
+  ![Screenshot](screenshot.png)
+  
 Requirements:
 * Trivy Operator running on AKS cluster:  
     Overview: https://aquasecurity.github.io/trivy-operator/v0.3.0/operator  
-    Install using Helm: https://aquasecurity.github.io/trivy-operator/v0.3.0/operator/installation/helm  
-    Install using kubectl: https://aquasecurity.github.io/trivy-operator/v0.3.0/operator/installation/kubectl/  
+    Install using Helm: https://aquasecurity.github.io/trivy-operator/v0.22.0/getting-started/installation/helm/  
+    Install using kubectl: https://aquasecurity.github.io/trivy-operator/v0.22.0/getting-started/installation/kubectl/  
 
 * kubectl command:  
     https://kubernetes.io/docs/tasks/tools/install-kubectl  
@@ -45,11 +46,14 @@ Usage:
 3. Run: `./vulns_aks.sh [file|csv]`  
 
 
-***Latest Version: 0.10(Initial Public Release)***
+***Latest Version: 0.10.1***
 
 CHANGELOG:  
 * 18/09/2024:
-  - Initial release.
+  - Initial release.  
+* 20/09/2024:
+  - Minor bug correction where cluster name variable was being printed before being initialized;
+  - Updates to README.md to reflect up to date version in the links.
 
 		
 TODO: Include other available Trivy fields in outputs.
