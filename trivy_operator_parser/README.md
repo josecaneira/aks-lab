@@ -13,7 +13,7 @@ Key features:
   
 Requirements:
 * Trivy Operator running on AKS cluster:  
-    Overview: https://aquasecurity.github.io/trivy-operator/v0.3.0/operator  
+    Overview: https://aquasecurity.github.io/trivy-operator/v0.22.0/  
     Install using Helm: https://aquasecurity.github.io/trivy-operator/v0.22.0/getting-started/installation/helm/  
     Install using kubectl: https://aquasecurity.github.io/trivy-operator/v0.22.0/getting-started/installation/kubectl/  
 
