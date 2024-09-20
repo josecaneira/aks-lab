@@ -123,7 +123,8 @@ for pods in `kubectl get vuln -A --no-headers|awk '{print $2":"$1}'`; do
       # Check if we have all fields to print or increment the count if not.
       if [ $count -eq 12 ]; then
         if [ "$csv" == "true" ]; then
-            #Commas in fixedVersion needs to be replaced to avoid csv issues.
+            #Commas in installedVersion and fixedVersion need to be replaced to avoid csv issues.
+            installedVersion=$(echo $InstalledVersion | tr ',' ';')
             fixedVersion=$(echo $fixedVersion | tr ',' ';')
             echo "$kind,$name,$namespace,$container,$vulnerabilityID,$severity,$primaryLink,$publishedDate,$resource,$installedVersion,$fixedVersion"
         else

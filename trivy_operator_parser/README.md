@@ -53,6 +53,7 @@ CHANGELOG:
   - Initial release.  
 * 20/09/2024:
   - Minor bug correction where cluster name variable was being printed before being initialized;
+  - installedVersion also needed to be escaped to avoid CSV issues;
   - Updates to README.md to reflect up to date version in the links.
 
 		
