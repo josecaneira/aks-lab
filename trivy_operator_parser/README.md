@@ -27,9 +27,9 @@ Requirements:
     Ubuntu: `sudo apt install jq`  
     Azure Linux: `sudo tdnf install jq`  
 
-* tr command:  
-    Ubuntu: `sudo apt install coreutils`  
-    AzureLinux: `sudo tdnf install coreutils`  
+* sed command:  
+    Ubuntu: `sudo apt install sed`  
+    AzureLinux: `sudo tdnf install sed`  
   
 Trivy Operator deployment:  
 * Helm:  
@@ -54,6 +54,7 @@ CHANGELOG:
 * 20/09/2024:
   - Minor bug correction where cluster name variable was being printed before being initialized;
   - installedVersion also needed to be escaped to avoid CSV issues;
+  - replaced tr by sed on escaping commas;
   - Updates to README.md to reflect up to date version in the links.
 
 		

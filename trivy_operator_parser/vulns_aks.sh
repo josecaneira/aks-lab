@@ -12,6 +12,15 @@
 # Created Date: 2024-09-02
 # Updated Date: 2024-09-20
 # Version: 0.10.1
+#CHANGELOG:  
+# 18/09/2024 - 0.10 :
+#  - Initial release.  
+# 20/09/2024 - 0.10.1 :
+#  - Minor bug correction where cluster name variable was being printed before being initialized;
+#  - installedVersion also needed to be escaped to avoid CSV issues;
+#  - replaced "tr" by "sed" on escaping commas;
+#  - Updates to README.md to reflect up to date version in the links.
+#
 # TODO: Include more fields in the output
 #
 # Requirements checking...
@@ -27,10 +36,10 @@ if ! command -v jq &> /dev/null; then
     echo "https://jqlang.github.io/jq/download/"
     exit 1
 fi
-if ! command -v tr &> /dev/null; then
-    echo "tr command could not be found, please install tr..."
-    echo "Ubuntu/Debian: sudo apt install coreutils"
-    echo "AzureLinux: sudo tdnf install coreutils"
+if ! command -v sed &> /dev/null; then
+    echo "sed command could not be found, please install sed..."
+    echo "Ubuntu/Debian: sudo apt install sed"
+    echo "AzureLinux: sudo tdnf install sed"
     exit 1
 fi
 if [ -z "`kubectl get deploy -A|grep trivy-operator`" ]; then
@@ -124,8 +133,8 @@ for pods in `kubectl get vuln -A --no-headers|awk '{print $2":"$1}'`; do
       if [ $count -eq 12 ]; then
         if [ "$csv" == "true" ]; then
             #Commas in installedVersion and fixedVersion need to be replaced to avoid csv issues.
-            installedVersion=$(echo $InstalledVersion | tr ',' ';')
-            fixedVersion=$(echo $fixedVersion | tr ',' ';')
+            installedVersion=$(echo $installedVersion | sed 's/,/;/g')
+            fixedVersion=$(echo $fixedVersion | sed 's/,/;/g')
             echo "$kind,$name,$namespace,$container,$vulnerabilityID,$severity,$primaryLink,$publishedDate,$resource,$installedVersion,$fixedVersion"
         else
           # If not CSV print a pretty output.
