@@ -91,12 +91,13 @@ for pods in `kubectl get vuln -A --no-headers|awk '{print $2":"$1}'`; do
     # Get vulnerabilities of the current object in a while read loop.
     kubectl get vuln $trivy_name -n $namespace -o json | jq -r '.report.vulnerabilities[] | .fixedVersion, .installedVersion, .lastModifiedDate, .links, .primaryLink, .publishedDate, .resource, .score, .severity, .target, .title, .vulnerabilityID' | while read -e line; do
       # Full set of fields available in the Trivy report. TODO: include all fields into output.
+      # Commas in installedVersion and fixedVersion need to be replaced to avoid csv issues.
       case $count in
         1)
-            fixedVersion=$(echo $line)
+            fixedVersion=$(echo $line|sed 's/\,/\;/g')
             ;;
         2)
-            installedVersion=$(echo $line)
+            installedVersion=$(echo $line|sed 's/\,/\;/g')
             ;;
         3)
             lastModifiedDate=$(echo $line)
@@ -132,9 +133,6 @@ for pods in `kubectl get vuln -A --no-headers|awk '{print $2":"$1}'`; do
       # Check if we have all fields to print or increment the count if not.
       if [ $count -eq 12 ]; then
         if [ "$csv" == "true" ]; then
-            #Commas in installedVersion and fixedVersion need to be replaced to avoid csv issues.
-            installedVersion=$(echo $installedVersion | sed 's/,/;/g')
-            fixedVersion=$(echo $fixedVersion | sed 's/,/;/g')
             echo "$kind,$name,$namespace,$container,$vulnerabilityID,$severity,$primaryLink,$publishedDate,$resource,$installedVersion,$fixedVersion"
         else
           # If not CSV print a pretty output.
