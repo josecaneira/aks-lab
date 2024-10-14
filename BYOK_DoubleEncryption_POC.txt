@@ -1,0 +1,108 @@
+
+
+BYOK with EncryptionAtRestWithPlatformAndCustomerKeys POC
+
+
+https://learn.microsoft.com/en-us/azure/aks/azure-disk-customer-managed-keys
+https://learn.microsoft.com/en-us/azure/key-vault/general/manage-with-cli2
+https://learn.microsoft.com/en-US/cli/azure/disk-encryption-set?view=azure-cli-latest#az_disk_encryption_set_create
+
+
+# WARNING: POC provide as-is without any waranty or support. For demonstration purposes only.
+
+# Variables:
+export SUB=<SUBSCRIPTION-ID>
+export RG=byok-lab-rg
+export CLUSTER=byok-lab
+export KV=byok-lab-kv
+export KNAME=byoklabkey
+export DESNAME=byoklabdes
+export REGION=uaenorth
+
+az group create --location $REGION --name $RG
+
+az keyvault create --name $KV --resource-group $RG --location $REGION  --enable-purge-protection true
+
+keyVaultId=$(az keyvault show --name $KV --query "[id]" -o tsv)
+
+az keyvault key create --vault-name $KV --name $KNAME --protection software
+
+keyVaultKeyUrl=$(az keyvault key show --vault-name $KV --name $KNAME --query "[key.kid]" -o tsv)
+
+az disk-encryption-set create --name $DESNAME --location $REGION --resource-group $RG --source-vault $keyVaultId --key-url $keyVaultKeyUrl --encryption-type EncryptionAtRestWithPlatformAndCustomerKeys
+
+desIdentity=$(az disk-encryption-set show --name $DESNAME --resource-group $RG --query "[identity.principalId]" -o tsv)
+
+az keyvault set-policy --name $KV --resource-group $RG --object-id $desIdentity --key-permissions "wrapkey unwrapkey get"
+
+diskEncryptionSetId=$(az disk-encryption-set show --name $DESNAME --resource-group $RG --query "[id]" -o tsv)
+
+az aks create --name $CLUSTER --resource-group $RG --node-osdisk-diskencryptionset-id $diskEncryptionSetId --generate-ssh-keys --node-osdisk-type Ephemeral --node-vm-size Standard_DS3_v2 --node-count 1
+
+az aks get-credentials --resource-group $RG --name $CLUSTER --overwrite-existing
+
+aksIdentity=$(az aks show --resource-group $RG --name $CLUSTER --query "identity.principalId")
+
+az role assignment create --role "Contributor" --assignee $aksIdentity --scope $diskEncryptionSetId
+
+echo $diskEncryptionSetId
+
+
+kubectl apply -f - <<EOF
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: byok
+provisioner: disk.csi.azure.com
+allowVolumeExpansion: true
+reclaimPolicy: Retain
+parameters:
+  skuname: Premium_LRS
+  kind: managed
+  diskEncryptionType: EncryptionAtRestWithPlatformAndCustomerKeys
+  diskEncryptionSetID: "/subscriptions/$SUB/resourceGroups/$RG/providers/Microsoft.Compute/diskEncryptionSets/$DESNAME"
+EOF
+
+
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: byok
+  resources:
+    requests:
+      storage: 100Gi
+EOF
+
+
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: my-container
+    image: nginx
+    volumeMounts:
+    - name: my-volume
+      mountPath: /data
+  volumes:
+  - name: my-volume
+    persistentVolumeClaim:
+      claimName: my-pvc
+EOF
+
+
+
+# Cleanup:
+
+az group delete --name $RG -y
+
+#az aks delete --name $CLUSTER --resource-group $RG -y
+#az disk-encryption-set delete --name $DESNAME --resource-group $RG
+
