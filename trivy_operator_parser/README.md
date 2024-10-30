@@ -57,7 +57,7 @@ CHANGELOG:
   - replaced tr by sed on escaping commas;
   - Updates to README.md to reflect up to date version in the links.
 * 30/10/2024 - 0.10.2:
-  - Added AKS cluster name to the output filename;
+  - Added AKS cluster name to the output filename.
 
 TODO: Include other available Trivy fields in outputs.
 
