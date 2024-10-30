@@ -49,15 +49,16 @@ Usage:
 ***Latest Version: 0.10.1***
 
 CHANGELOG:  
-* 18/09/2024:
+* 18/09/2024 - 0.10 :
   - Initial release.  
-* 20/09/2024:
+* 20/09/2024 - 0.10.1:
   - Minor bug correction where cluster name variable was being printed before being initialized;
   - installedVersion also needed to be escaped to avoid CSV issues;
   - replaced tr by sed on escaping commas;
   - Updates to README.md to reflect up to date version in the links.
+* 30/10/2024 - 0.10.2:
+  - Added AKS cluster name to the output filename;
 
-		
 TODO: Include other available Trivy fields in outputs.
 
 __________________________________________________________________________________________________________________________________________________________________________________________________________

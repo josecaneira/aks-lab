@@ -20,6 +20,8 @@
 #  - installedVersion also needed to be escaped to avoid CSV issues;
 #  - replaced "tr" by "sed" on escaping commas;
 #  - Updates to README.md to reflect up to date version in the links.
+# 30/10/2024 - 0.10.2 :
+#  - Added AKS cluster name to the output filename;
 #
 # TODO: Include more fields in the output
 #
@@ -52,14 +54,18 @@ if [ -z "`kubectl get deploy -A|grep trivy-operator`" ]; then
 fi
 #Grab the current AKS cluster name from kubectl context.
 cluster=`kubectl config current-context`
+if [ -z "$cluster" ]; then
+    echo "Could not get AKS cluster name from kubectl context..."
+    exit 1
+fi
 echo "Collecting vulnerabilities from \"$cluster\" AKS cluster..."
 if [ "$1" == "csv" ]; then
     csv=true
-    log="vulns_aks_`date +%Y%m%d_%H%M%S`.csv"
+    log="vulns_aks_${cluster}_`date +%Y%m%d_%H%M%S`.csv"
     echo "Resource Kind,Resource Name,Namespace,Container,Vulnerability ID,Severity,Link,Published Date,Affected Component,Installed Version,Fixed Version(s)" >>${log}
 else
     csv=false
-    log="vulns_aks_`date +%Y%m%d_%H%M%S`.txt"
+    log="vulns_aks_${cluster}_`date +%Y%m%d_%H%M%S`.txt"
     echo "Vulnereabilities for \"$cluster\" AKS cluster:">${log}
     echo "#####################################################" >>${log}
 fi
