@@ -37,7 +37,7 @@ Customize usage:
    - Delete the PV: `kubectl delete pv <PV_NAME>`
 7) Browse the file share(PV) on your cluster managed Resource Group "MC_" using Azure Portal to download capture files.
 
-***Latest Version: 1.1.4***
+***Latest Version: 1.1.5***
 
 CHANGELOG:  
 * 11/08/2023:
@@ -58,6 +58,9 @@ CHANGELOG:
   - Added a storageClass with retain on reclaimPolicy to avoid patching PV manually. Thank you Ioan Corcodel for the idea from his work https://github.com/ioanc/k8s-network-troubleshooting/blob/master/daemonSet-tcpdump-pvc.yaml
   - Added support to filter by HOST, if HST variable is set it will be used to filter the tcpdump with "host" option, SRC and DST variables will be ignored;
   - Improved logic so that IFs aren't required to handle the INT variable per each tcpdump command. Default interface will be "any".
+* 09/06/2025:
+  - Added variable CUS to allow custom tcpdump queries, if this variable is set all other variables will be ignored. This allows for more complex queries to be used;
+  - Increased pod memory limit to 1Gi, since pod was being OOM killend on the tcpdump installation fase.
 		
 TODO: Implement a "restricted" mode to only collect certain packages types. Other suggestions and/or feedback is welcomed.
 
