@@ -60,7 +60,8 @@ CHANGELOG:
   - Improved logic so that IFs aren't required to handle the INT variable per each tcpdump command. Default interface will be "any".
 * 09/06/2025:
   - Added variable CUS to allow custom tcpdump queries, if this variable is set all other variables will be ignored. This allows for more complex queries to be used;
-  - Increased pod memory limit to 1Gi, since pod was being OOM killend on the tcpdump installation fase.
+  - Increased pod memory limit to 1Gi, since pod was being OOM killed on the tcpdump installation fase;
+  - CUS was missing from pod environment variables, added it to the pod spec.
 		
 TODO: Implement a "restricted" mode to only collect certain packages types. Other suggestions and/or feedback is welcomed.
 
